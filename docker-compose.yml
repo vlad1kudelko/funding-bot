@@ -1,0 +1,16 @@
+services:
+  client_bybit:
+    build: ./client_bybit
+    restart: always
+    depends_on:
+      - server
+  client_okx:
+    build: ./client_okx
+    restart: always
+    depends_on:
+      - server
+  server:
+    build: ./server
+    ports:
+      - 8000:8000
+    restart: always

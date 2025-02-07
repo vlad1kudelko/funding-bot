@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+<script src="https://fiduswriter.github.io/diffDOM/browser/diffDOM.js"></script>
+<!-- <div class="container mx-auto px-4"> -->
+<div class="px-4" style="font-family:monospace">
+    <h2 class="my-4 text-center text-2xl font-bold">Admin</h2>
+    <div class="my-4 p-4 bg-slate-800 rounded-lg" id="table">
+        <div></div>
+    </div>
+</div>
+<style>
+    table, th, td {
+        border: 1px solid gray;
+        border-collapse: collapse;
+    }
+</style>
+<script>
+    function highlightElements(elements) {
+        elements.forEach(element => {
+            element.classList.add('bg-slate-700');
+            setTimeout(() => { element.classList.remove('bg-slate-700'); }, 100);
+        });
+    }
+    setInterval(async () => {
+        let response = await fetch('/get/');
+        if (response.ok) {
+            let dd = new diffDOM.DiffDOM();
+            let elem_new = document.createElement('div');
+            elem_new.innerHTML = (await response.json())['html'];
+            let elem_old = document.querySelector('#table > div');
+            let diff = dd.diff(elem_old, elem_new);
+            dd.apply(elem_old, diff);
+            diff.forEach(change => {
+                if (change.action === 'replaceElement') {
+                    for (let key in change.oldValue.childNodes) {
+                        let td_old = change.oldValue.childNodes[key];
+                        let td_new = change.newValue.childNodes[key];
+                        if (td_old.childNodes[0].data === td_new.childNodes[0].data) { continue; }
+                        const modifiedNode = elem_old.querySelector('#' + td_new.attributes.id);
+                        highlightElements([modifiedNode]);
+                        // change.oldValue.childNodes[].attributes.id
+                        // change.oldValue.childNodes[].childNodes[0].data
+                    }
+                }
+            });
+        } else { alert("Ошибка HTTP: " + response.status); }
+    }, 100);
+</script>
+{% endblock %}
